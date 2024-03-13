@@ -20,21 +20,19 @@ final class MovieQuizViewController: UIViewController {
         let text: String
         let buttonText: String
     }
-    
+    @IBOutlet weak var yesButton: UIButton!
+    @IBOutlet weak var noButton: UIButton!
     @IBOutlet private var counterLabel: UILabel!
     @IBOutlet private var textLabel: UILabel!
     @IBOutlet private var imageView: UIImageView!
     @IBAction private func yesButtonClicked(_ sender: UIButton) {
         let currentQuestion = questions[currentQuestionIndex]
         let givenAnswer = true
-        
         showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
     }
     @IBAction private func noButtonClicked(_ sender: UIButton) {
-        
         let currentQuestion = questions[currentQuestionIndex]
         let givenAnswer = false
-        
         showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
     }
     
@@ -87,6 +85,9 @@ final class MovieQuizViewController: UIViewController {
         super.viewDidLoad()
         let convertedFirstQuestion = convert(model: questions[0])
         show(quiz: convertedFirstQuestion)
+        
+        imageView.layer.cornerRadius = 20
+        imageView.clipsToBounds = true
     }
     
     private func convert(model: QuizQuestion) -> QuizStepViewModel {
@@ -101,6 +102,8 @@ final class MovieQuizViewController: UIViewController {
         imageView.image = step.image
         textLabel.text = step.question
         counterLabel.text = step.questionNumber
+        yesButton.isEnabled = true
+        noButton.isEnabled = true
     }
     
     private func show(quiz result: QuizResultsViewModel){
@@ -124,10 +127,12 @@ final class MovieQuizViewController: UIViewController {
     }
     
     private func showAnswerResult(isCorrect: Bool){
+        yesButton.isEnabled = false
+        noButton.isEnabled = false
         imageView.layer.masksToBounds = true
-        imageView.layer.borderWidth = 1
+        imageView.layer.borderWidth = 8
         imageView.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
-        imageView.layer.cornerRadius = 6
+        imageView.layer.cornerRadius = 20
         
         if isCorrect {
             correctAnswers += 1
