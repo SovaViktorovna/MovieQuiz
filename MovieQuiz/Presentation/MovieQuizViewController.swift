@@ -2,33 +2,6 @@ import UIKit
 
 final class MovieQuizViewController: UIViewController {
     // MARK: - Lifecycle
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        
-        let convertedFirstQuestion = convert(model: questions[0])
-        show(quiz: convertedFirstQuestion)
-    }
-    
-    private var currentQuestionIndex = 0
-    private var correctAnswers = 0
-    
-    @IBOutlet private var counterLabel: UILabel!
-    @IBOutlet private var textLabel: UILabel!
-    @IBOutlet private var imageView: UIImageView!
-    @IBAction private func yesButtonClicked(_ sender: UIButton) {
-        let currentQuestion = questions[currentQuestionIndex]
-        let givenAnswer = true
-        
-        showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
-    }
-    @IBAction private func noButtonClicked(_ sender: UIButton) {
-        
-        let currentQuestion = questions[currentQuestionIndex]
-        let givenAnswer = false
-        
-        showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
-    }
-    
     
     struct QuizQuestion {
         let image: String
@@ -48,6 +21,25 @@ final class MovieQuizViewController: UIViewController {
         let buttonText: String
     }
     
+    @IBOutlet private var counterLabel: UILabel!
+    @IBOutlet private var textLabel: UILabel!
+    @IBOutlet private var imageView: UIImageView!
+    @IBAction private func yesButtonClicked(_ sender: UIButton) {
+        let currentQuestion = questions[currentQuestionIndex]
+        let givenAnswer = true
+        
+        showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
+    }
+    @IBAction private func noButtonClicked(_ sender: UIButton) {
+        
+        let currentQuestion = questions[currentQuestionIndex]
+        let givenAnswer = false
+        
+        showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
+    }
+    
+    private var currentQuestionIndex = 0
+    private var correctAnswers = 0
     private let questions: [QuizQuestion] = [
         QuizQuestion (
             image: "The Godfather",
@@ -91,7 +83,11 @@ final class MovieQuizViewController: UIViewController {
             correctAnswer: false)
     ]
     
-    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        let convertedFirstQuestion = convert(model: questions[0])
+        show(quiz: convertedFirstQuestion)
+    }
     
     private func convert(model: QuizQuestion) -> QuizStepViewModel {
         let questionStep = QuizStepViewModel (
@@ -118,7 +114,6 @@ final class MovieQuizViewController: UIViewController {
             style: .default){ _ in
                 self.currentQuestionIndex = 0
                 self.correctAnswers = 0
-                
                 let firstQuestion = self.questions[self.currentQuestionIndex]
                 let viewModel = self.convert(model: firstQuestion)
                 self.show(quiz: viewModel)
@@ -137,7 +132,6 @@ final class MovieQuizViewController: UIViewController {
         if isCorrect {
             correctAnswers += 1
         }
-        
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0 ) {
             self.showNextQuestionOrResults()
         }
