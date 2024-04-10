@@ -8,12 +8,7 @@
 import UIKit
 
 class AlertPresenter {
-    
-    weak var delegate: AlertPresenterDelegate?
-    init(delegate: AlertPresenterDelegate){
-        self.delegate = delegate
-    }
-    func show(alert data: AlertModel){
+    static func show(alert data: AlertModel, controller delegate: AlertPresenterDelegate){
         let alert = UIAlertController(
             title: data.title,
             message: data.message,
@@ -25,6 +20,6 @@ class AlertPresenter {
                 data.completion()
             }
         alert.addAction(action)
-        delegate?.didReceiveAlert(alert: alert)
+        delegate.didReceiveAlert(alert: alert)
     }
 }

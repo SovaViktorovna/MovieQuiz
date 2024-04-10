@@ -28,26 +28,13 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     private let questionsAmount: Int = 10
     private var questionFactory: QuestionFactoryProtocol?
     private var currentQuestion: QuizQuestion?
-    private var alertPresenter: AlertPresenter?
     private let statisticService = StatisticServiceImplementation()
     
     override func viewDidLoad() {
         super.viewDidLoad()
-       
-        
-        var documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-        let fileName = "top250MoviesIMDB.json"
-        documentsURL.appendPathComponent(fileName)
-        let jsonString = try? String(contentsOf: documentsURL)
-        guard let jsonString = jsonString else {return}
-        
-        
-        let movies = getMovie(from: jsonString)
-        
         
         questionFactory = QuestionFactory(delegate: self)
         questionFactory?.requestNextQuestion()
-        alertPresenter = AlertPresenter(delegate: self)
         
         imageView.layer.cornerRadius = 20
         imageView.clipsToBounds = true
@@ -57,7 +44,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     
     func didReceiveNextQuestion(question: QuizQuestion?) {
         guard let question = question else {
-               return
+            return
         }
         
         currentQuestion = question
@@ -87,7 +74,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
         yesButton.isEnabled = true
         noButton.isEnabled = true
     }
-
+    
     private func showAnswerOrResult(isCorrect: Bool){
         yesButton.isEnabled = false
         noButton.isEnabled = false
@@ -99,9 +86,9 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
         if isCorrect {
             correctAnswers += 1
         }
+        
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0 ) { [weak self] in
-            guard let self = self else {return}
-            self.showNextQuestionOrResults()
+            self?.showNextQuestionOrResults()
         }
     }
     
@@ -110,11 +97,13 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
         if currentQuestionIndex == questionsAmount - 1 {
             statisticService.store(correct: correctAnswers, total: questionsAmount)
             
-            var text = "Ваш результат: \(correctAnswers)/\(questionsAmount)\n"
-            text += "Количество сыграных квизов: \(statisticService.gameCount)\n"
-            text += "Рекорд: \(statisticService.bestGame.correct)/\(statisticService.bestGame.total) (\(statisticService.bestGame.date.dateTimeString))\n"
-            text += "Средняя точность: \(String(format: "%.2f", statisticService.totalAccuracy * 100))%"
-           
+            let text = """
+            Ваш результат: \(correctAnswers)/\(questionsAmount)
+            Количество сыграных квизов: \(statisticService.gameCount)
+             "Рекорд: \(statisticService.bestGame.correct)/\(statisticService.bestGame.total) (\(statisticService.bestGame.date.dateTimeString))
+            Средняя точность: \(String(format: "%.2f", statisticService.totalAccuracy * 100))%
+            """
+            
             let alertData = AlertModel (
                 title: "Этот раунд окончен!",
                 message: text,
@@ -125,20 +114,12 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
                     self.questionFactory?.requestNextQuestion()
                 }
             )
-            alertPresenter?.show(alert: alertData)
+            
+            AlertPresenter.show(alert: alertData, controller: self)
             
         } else {
             currentQuestionIndex += 1
             questionFactory?.requestNextQuestion()
         }
     }
-    
-    private func getMovie(from jsonString: String) -> [Movie]? {
-        // метод `data(using:...)` возвращает опционал, поэтому мы его распаковываем.
-        guard let data = jsonString.data(using: .utf8) else { return nil }
-        // В конроллере вы сможете распарсить JSON с помощью кода
-        let result = try? JSONDecoder().decode(Top.self, from: data)
-        return result?.items
-        }
-    
 }
