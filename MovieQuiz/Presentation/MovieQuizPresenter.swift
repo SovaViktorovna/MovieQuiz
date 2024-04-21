@@ -7,14 +7,22 @@
 
 import UIKit
 
-final class MovieQuizPresenter{
+final class MovieQuizPresenter: QuestionFactoryDelegate {
     
-    var questionFactory: QuestionFactoryProtocol?
+    private var questionFactory: QuestionFactoryProtocol?
+    weak var viewController: MovieQuizViewController?
     var correctAnswers: Int = 0
     let questionsAmount = 10
     var currentQuestion: QuizQuestion?
-    weak var viewController: MovieQuizViewController?
     private var currentQuestionIndex = 0
+    
+    init(viewController: MovieQuizViewController) {
+        self.viewController = viewController
+        
+        questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
+        questionFactory?.loadData()
+        viewController.showLoadingIndicator()
+    }
     
     func yesButtonClicked() {
         didAnswer(isYes: true)
@@ -32,6 +40,12 @@ final class MovieQuizPresenter{
         let givenAnswer = isYes
         
         viewController?.showAnswerOrResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
+    }
+    
+    func didAnswer(isCorrectAnswer: Bool) {
+        if isCorrectAnswer {
+            correctAnswers += 1
+        }
     }
     
     func didReceiveNextQuestion(question: QuizQuestion?) {
@@ -73,8 +87,34 @@ final class MovieQuizPresenter{
         currentQuestionIndex == questionsAmount - 1
     }
     
-    func resetQuestionIndex() {
+    // MARK: - QuestionFactoryDelegate
+    
+    func didLoadDataFromServer() {
+        viewController?.hideLoadingIndicator()
+        questionFactory?.requestNextQuestion()
+    }
+    
+    func didFailToLoadData(with error: Error) {
+        let message = error.localizedDescription
+        viewController?.showNetworkError(message: message)
+    }
+    
+    func didRecieveNextQuestion(question: QuizQuestion?) {
+        guard let question = question else {
+            return
+        }
+        
+        currentQuestion = question
+        let viewModel = convert(model: question)
+        DispatchQueue.main.async { [weak self] in
+            self?.viewController?.show(quiz: viewModel)
+        }
+    }
+    
+    func restartGame() {
         currentQuestionIndex = 0
+        correctAnswers = 0
+        questionFactory?.requestNextQuestion()
     }
     
     func switchToNextQuestion() {
