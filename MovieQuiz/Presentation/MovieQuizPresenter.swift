@@ -8,8 +8,29 @@
 import UIKit
 
 final class MovieQuizPresenter{
+    
     let questionsAmount = 10
+    var currentQuestion: QuizQuestion?
+    weak var viewController: MovieQuizViewController?
     private var currentQuestionIndex = 0
+    
+    func yesButtonClicked() {
+        guard let currentQuestion = currentQuestion else {
+            return
+        }
+        
+        let givenAnswer = true
+        
+        viewController?.showAnswerOrResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
+    }
+    
+    func noButtonClicked() {
+        guard let currentQuestion = currentQuestion else {
+            return
+        }
+        let givenAnswer = false
+        viewController?.showAnswerOrResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
+    }
     
     func convert(model: QuizQuestion) -> QuizStepViewModel {
         return QuizStepViewModel(
